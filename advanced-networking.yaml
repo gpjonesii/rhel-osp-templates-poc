@@ -1,0 +1,88 @@
+# Enable the creation of Neutron networks for isolated Overcloud
+# traffic and configure each role to assign ports (related
+# to that role) on these networks.
+resource_registry:
+  OS::TripleO::Network::External: /home/stack/templates/network/external.yaml
+  OS::TripleO::Network::InternalApi: /home/stack/templates/network/internal_api.yaml
+  OS::TripleO::Network::StorageMgmt: /home/stack/templates/network/storage_mgmt.yaml
+  OS::TripleO::Network::Storage: /home/stack/templates/network/storage.yaml
+  OS::TripleO::Network::Tenant: /home/stack/templates/network/tenant.yaml
+
+  # Port assignments for the VIPs
+  OS::TripleO::Network::Ports::ExternalVipPort: /home/stack/templates/network/ports/vip.yaml
+  OS::TripleO::Network::Ports::InternalApiVipPort: /home/stack/templates/network/ports/vip.yaml
+  OS::TripleO::Network::Ports::StorageVipPort: /home/stack/templates/network/ports/vip.yaml
+  OS::TripleO::Network::Ports::StorageMgmtVipPort: /home/stack/templates/network/ports/vip.yaml
+  OS::TripleO::Network::Ports::TenantVipPort: /home/stack/templates/network/ports/vip.yaml
+  OS::TripleO::Network::Ports::RedisVipPort: /home/stack/templates/network/ports/vip.yaml
+
+  # Port assignments for the controller role
+  OS::TripleO::Controller::Ports::ExternalPort: /home/stack/templates/network/ports/external.yaml
+  OS::TripleO::Controller::Ports::InternalApiPort: /home/stack/templates/network/ports/internal_api.yaml
+  OS::TripleO::Controller::Ports::StoragePort: /home/stack/templates/network/ports/storage.yaml
+  OS::TripleO::Controller::Ports::StorageMgmtPort: /home/stack/templates/network/ports/storage_mgmt.yaml
+  OS::TripleO::Controller::Ports::TenantPort: /home/stack/templates/network/ports/tenant.yaml
+
+  # Port assignments for the compute role
+  OS::TripleO::Compute::Ports::InternalApiPort: /home/stack/templates/network/ports/internal_api.yaml
+  OS::TripleO::Compute::Ports::StoragePort: /home/stack/templates/network/ports/storage.yaml
+  OS::TripleO::Compute::Ports::TenantPort: /home/stack/templates/network/ports/tenant.yaml
+
+  # Port assignments for the ceph storage role
+  OS::TripleO::CephStorage::Ports::StoragePort: /home/stack/templates/network/ports/storage.yaml
+  OS::TripleO::CephStorage::Ports::StorageMgmtPort: /home/stack/templates/network/ports/storage_mgmt.yaml
+
+  # Port assignments for the swift storage role
+  OS::TripleO::SwiftStorage::Ports::InternalApiPort: /home/stack/templates/network/ports/internal_api.yaml
+  OS::TripleO::SwiftStorage::Ports::StoragePort: /home/stack/templates/network/ports/storage.yaml
+  OS::TripleO::SwiftStorage::Ports::StorageMgmtPort: /home/stack/templates/network/ports/storage_mgmt.yaml
+
+  # Port assignments for the block storage role
+  OS::TripleO::BlockStorage::Ports::InternalApiPort: /home/stack/templates/network/ports/internal_api.yaml
+  OS::TripleO::BlockStorage::Ports::StoragePort: /home/stack/templates/network/ports/storage.yaml
+  OS::TripleO::BlockStorage::Ports::StorageMgmtPort: /home/stack/templates/network/ports/storage_mgmt.yaml
+
+  # Port assignments for service virtual IPs for the controller role
+  OS::TripleO::Controller::Ports::RedisVipPort: /home/stack/templates/network/ports/vip.yaml
+  
+  # NIC Configs 
+  OS::TripleO::Compute::Net::SoftwareConfig: /home/stack/templates/nic-configs/compute.yaml
+  OS::TripleO::Controller::Net::SoftwareConfig: /home/stack/templates/nic-configs/controller.yaml
+
+parameter_defaults:
+
+  # Internal API used for private OpenStack Traffic
+  InternalApiNetCidr: 172.24.8.0/24
+  InternalApiAllocationPools: [{'start': '172.24.8.50', 'end': '172.24.8.200'}]
+  InternalApiNetworkVlanID: 2408
+
+  # Tenant Network Traffic - will be used for VXLAN over VLAN
+  TenantNetCidr: 172.24.10.0/24
+  TenantAllocationPools: [{'start': '172.24.10.50', 'end': '172.24.10.200'}]
+  TenantNetworkVlanID: 2410
+
+  # Public Storage Access - e.g. Nova/Glance <--> Ceph
+  StorageNetCidr: 172.24.5.0/24
+  StorageAllocationPools: [{'start': '172.24.5.50', 'end': '172.24.5.200'}]
+  StorageNetworkVlanID: 2405
+
+  # Private Storage Access - i.e. Ceph background cluster/replication
+  StorageMgmtNetCidr: 172.24.6.0/24
+  StorageMgmtAllocationPools: [{'start': '172.24.6.50', 'end': '172.24.6.200'}]
+  StorageMgmtNetworkVlanID: 2406
+
+  # External Networking Access - Public API Access
+  ExternalNetCidr: 172.24.2.0/24
+  # Leave room for floating IPs in the External allocation pool (if required)
+  ExternalAllocationPools: [{'start': '172.24.2.50', 'end': '172.24.2.200'}]
+  # Set to the router gateway on the external network
+  ExternalInterfaceDefaultRoute: 172.24.2.1
+  ExternalNetworkVlanID: 2402
+
+  ControlPlaneSubnetCidr: "24"
+  ControlPlaneDefaultRoute: 172.24.3.1
+  EC2MetadataIp: 172.24.3.1
+  DnsServers: ["172.24.2.100"]
+
+  # Allowing multiple external vlans
+  NeutronExternalNetworkBridge: "''"
