@@ -4,7 +4,7 @@ source /home/stack/stackrc
 
 openstack overcloud deploy --templates /home/stack/templates \
   --ntp-server 172.24.3.1 \
-  --libvirt-type kvm
+  --libvirt-type kvm \
   --control-flavor control --compute-flavor compute  \
   --control-scale 3        --compute-scale 1  \
   --neutron-tunnel-types vxlan --neutron-network-type vxlan  \
